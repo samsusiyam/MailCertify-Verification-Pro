@@ -160,16 +160,18 @@ HTML;
 
         $moduleParam = $_GET['m'] ?? $_REQUEST['m'] ?? '';
         $uri = $_SERVER['REQUEST_URI'] ?? '';
+        $queryString = $_SERVER['QUERY_STRING'] ?? '';
 
         $debug = "DEBUG MailCertify checkAccess:<br>
 ClientID: {$clientId}<br>
 Verified: " . ($client->email_verified ? 'yes' : 'no') . "<br>
 GET[m]: " . htmlspecialchars($moduleParam) . "<br>
 REQUEST_URI: " . htmlspecialchars($uri) . "<br>
+QUERY_STRING: " . htmlspecialchars($queryString) . "<br>
 GET keys: " . implode(', ', array_keys($_GET)) . "<br>
 Allowed: ";
 
-        if ($moduleParam === 'mailcertifyverify' || strpos($uri, 'm=mailcertifyverify') !== false) {
+        if ($moduleParam === 'mailcertifyverify' || strpos($uri, 'm=mailcertifyverify') !== false || strpos($queryString, 'm=mailcertifyverify') !== false) {
             $debug .= "YES (on verify page)";
             echo $debug;
             exit;
