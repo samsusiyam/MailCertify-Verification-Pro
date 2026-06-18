@@ -17,16 +17,8 @@ require_once __DIR__ . '/lib/Client/VerifyController.php';
 add_hook('ClientAreaPage', 1, function ($vars) {
     $check = VerifyController::checkAccess();
     if (!$check['allowed']) {
-        header("Location: {$check['redirect']}");
+        redir('m=mailcertifyverify', 'index.php');
         exit;
-    }
-    return $vars;
-});
-
-add_hook('ClientAreaPage', 2, function ($vars) {
-    $clientId = (int)($_SESSION['uid'] ?? 0);
-    if ($clientId) {
-        $_SESSION['email_verified'] = Verification::isVerified($clientId);
     }
     return $vars;
 });

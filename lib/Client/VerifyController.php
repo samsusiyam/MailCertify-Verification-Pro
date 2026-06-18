@@ -158,12 +158,14 @@ HTML;
             return ['allowed' => true];
         }
 
-        if (isset($_GET['m']) && $_GET['m'] === 'mailcertifyverify') {
+        $moduleParam = $_GET['m'] ?? $_REQUEST['m'] ?? '';
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+
+        if ($moduleParam === 'mailcertifyverify' || strpos($uri, 'm=mailcertifyverify') !== false) {
             return ['allowed' => true];
         }
 
-        $uri = $_SERVER['REQUEST_URI'];
-        $allowed = ['logout.php', 'submitticket.php', 'viewticket.php', 'supporttickets.php'];
+        $allowed = ['logout.php', 'submitticket.php', 'viewticket.php', 'supporttickets.php', 'clientarea.php?action=details'];
         foreach ($allowed as $page) {
             if (strpos($uri, $page) !== false) {
                 return ['allowed' => true];
