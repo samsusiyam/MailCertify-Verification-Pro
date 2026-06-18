@@ -187,6 +187,8 @@ function mailcertifyverify_output($vars)
 
 function mailcertifyverify_clientarea($vars)
 {
+    $_SESSION['mc_on_verify'] = true;
+
     $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 
     if ($action === 'verify' && isset($_GET['token'])) {
@@ -205,6 +207,7 @@ function mailcertifyverify_clientarea($vars)
     if ($action === 'resend') {
         $result = \MailCertify\Client\VerifyController::handleResend();
         if ($result['success']) {
+            unset($_SESSION['mc_on_verify']);
             redir('m=mailcertifyverify', 'index.php');
         }
         return [
@@ -215,6 +218,7 @@ function mailcertifyverify_clientarea($vars)
     $pageData = \MailCertify\Client\VerifyController::renderVerifyPage();
 
     if (isset($pageData['redirect'])) {
+        unset($_SESSION['mc_on_verify']);
         redir('', $pageData['redirect']);
     }
 

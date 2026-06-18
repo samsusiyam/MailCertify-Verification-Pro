@@ -63,6 +63,8 @@ add_hook('ClientChangeEmail', 1, function ($vars) {
 });
 
 add_hook('ClientAreaHeadOutput', 1, function () {
+    if (!empty($_SESSION['mc_on_verify'])) return '';
+
     $clientId = (int)($_SESSION['uid'] ?? 0);
     if (!$clientId) return '';
 
@@ -86,24 +88,12 @@ if (window.location.href.indexOf('m=mailcertifyverify') === -1 && !sessionStorag
 }
 </script>
 <style>
-#mc-blocker {{
-    position: fixed; top:0; left:0; width:100%; height:100%;
-    background: #f5f5f5; z-index: 999999;
-    display: flex; align-items: center; justify-content: center;
-}}
-#mc-blocker .mc-box {{
-    background: #fff; padding: 50px; border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15); text-align: center;
-    max-width: 500px;
-}}
-#mc-blocker h2 {{ margin-bottom: 15px; color: #333; }}
-#mc-blocker p {{ color: #666; margin-bottom: 20px; }}
-#mc-blocker .mc-btn {{
-    display: inline-block; padding: 12px 30px;
-    background: #0066cc; color: #fff; text-decoration: none;
-    border-radius: 4px; font-size: 16px;
-}}
-#mc-blocker .mc-btn:hover {{ background: #0052a3; }}
+#mc-blocker { position:fixed;top:0;left:0;width:100%;height:100%;background:#f5f5f5;z-index:999999;display:flex;align-items:center;justify-content:center; }
+#mc-blocker .mc-box { background:#fff;padding:50px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.15);text-align:center;max-width:500px; }
+#mc-blocker h2 { margin-bottom:15px;color:#333; }
+#mc-blocker p { color:#666;margin-bottom:20px; }
+#mc-blocker .mc-btn { display:inline-block;padding:12px 30px;background:#06c;color:#fff;text-decoration:none;border-radius:4px;font-size:16px; }
+#mc-blocker .mc-btn:hover { background:#0052a3; }
 </style>
 <div id="mc-blocker">
     <div class="mc-box">
