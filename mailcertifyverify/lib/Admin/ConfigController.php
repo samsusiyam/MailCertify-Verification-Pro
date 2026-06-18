@@ -17,6 +17,7 @@ class ConfigController
         $totalBans = array_sum($banStats);
         $logCount = Capsule::table('mod_mailcertify_logs')->count();
         $verificationType = Database::getSetting('verification_type');
+        $currentModeDisplay = ucfirst($verificationType);
 
         $recentLogs = Capsule::table('mod_mailcertify_logs')
             ->orderBy('created_at', 'desc')
@@ -52,7 +53,7 @@ class ConfigController
 </div>
 
 <div class="panel panel-default">
-    <div class="panel-heading"><strong>Current Mode: </strong> " . ucfirst($verificationType) . "</div>
+    <div class="panel-heading"><strong>Current Mode: </strong> {$currentModeDisplay}</div>
     <div class="panel-body">
         <a href="?module=mailcertifyverify&action=settings" class="btn btn-primary">
             <i class="fa fa-cogs"></i> Settings
@@ -308,9 +309,15 @@ HTML;
             });
         }
 
+        $page = isset($_GET['p']) ? max(1, (int)$_GET['p']) : 1;
+        $perPage = 20;
+        $total = $query->count();
         $clients = $query->orderBy('created_at', 'desc')
             ->select('id', 'firstname', 'lastname', 'email', 'email_verified', 'email_verified_at', 'status', 'created_at')
-            ->paginate(20);
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+        $totalPages = ceil($total / $perPage);
 
         echo <<<HTML
 <div class="panel panel-default">
@@ -359,7 +366,18 @@ HTML;
             echo '<tr><td colspan="7">No clients found.</td></tr>';
         }
 
-        echo '</tbody></table></div></div>';
+        echo '</tbody></table>';
+
+        if ($totalPages > 1) {
+            echo '<nav><ul class="pagination">';
+            for ($i = 1; $i <= $totalPages; $i++) {
+                $active = $i === $page ? ' class="active"' : '';
+                echo '<li' . $active . '><a href="?module=mailcertifyverify&action=clients&search=' . urlencode($search) . '&p=' . $i . '">' . $i . '</a></li>';
+            }
+            echo '</ul></nav>';
+        }
+
+        echo '<p>Total: ' . $total . ' clients</p></div></div>';
     }
 
     public static function handleManualVerify()
