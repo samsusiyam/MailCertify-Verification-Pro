@@ -8,7 +8,13 @@ use WHMCS\Database\Capsule;
 use WHMCS\Authentication\CurrentUser;
 use MailCertify\Core\Verification;
 use MailCertify\Core\Database;
+use MailCertify\Core\BanManager;
 use MailCertify\Client\VerifyController;
+
+require_once __DIR__ . '/lib/Core/Database.php';
+require_once __DIR__ . '/lib/Core/Verification.php';
+require_once __DIR__ . '/lib/Core/BanManager.php';
+require_once __DIR__ . '/lib/Client/VerifyController.php';
 
 // --- Client Area Page Hook: Check verification ---
 add_hook('ClientAreaPage', 1, function ($vars) {
