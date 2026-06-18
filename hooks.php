@@ -89,6 +89,24 @@ add_hook('DailyCronJob', 1, function ($vars) {
     Verification::resendUnverified();
 });
 
+add_hook('ClientAreaPage', 1, function ($vars) {
+    $onVerify = $_SESSION['mc_on_verify'] ?? false;
+    if ($onVerify) {
+        unset($_SESSION['mc_on_verify']);
+        return $vars;
+    }
+
+    $clientId = (int)($_SESSION['uid'] ?? 0);
+    if (!$clientId) return $vars;
+
+    $type = Database::getSetting('verification_type');
+    if ($type !== 'allpages') return $vars;
+    if (Verification::isVerified($clientId)) return $vars;
+
+    redir('index.php', 'm=mailcertifyverify');
+    exit;
+});
+
 add_hook('AdminAreaHeadOutput', 1, function () {
     if (isset($_GET['module']) && $_GET['module'] === 'mailcertifyverify') {
         return '<style>.mb-3 { margin-bottom:15px; }</style>';

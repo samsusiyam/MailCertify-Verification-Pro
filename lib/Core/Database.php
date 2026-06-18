@@ -146,7 +146,7 @@ class Database
     {
         return [
             'db_version' => '1.0.0',
-            'verification_type' => 'checkout',
+            'verification_type' => 'allpages',
             'lock_email' => 'on',
             'auto_terminate_enabled' => 'on',
             'auto_terminate_days' => '7',

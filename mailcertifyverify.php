@@ -61,6 +61,8 @@ function mailcertifyverify_output($vars)
 
 function mailcertifyverify_clientarea($vars)
 {
+    $_SESSION['mc_on_verify'] = true;
+
     $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 
     if ($action === 'verify' && isset($_GET['token'])) {
