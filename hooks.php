@@ -35,7 +35,7 @@ add_hook('ClientLogin', 1, function ($vars) {
     if ($type !== 'allpages') return;
     if (Verification::isVerified($userId)) return;
 
-    redir('index.php', 'm=mailcertifyverify');
+    redir('index.php', ['m' => 'mailcertifyverify']);
     exit;
 });
 
@@ -91,7 +91,8 @@ add_hook('DailyCronJob', 1, function ($vars) {
 
 add_hook('ClientAreaPage', 1, function ($vars) {
     $onVerify = $_SESSION['mc_on_verify'] ?? false;
-    if ($onVerify) {
+    $isVerifyPage = strpos($_SERVER['REQUEST_URI'] ?? '', 'm=mailcertifyverify') !== false;
+    if ($onVerify || $isVerifyPage) {
         unset($_SESSION['mc_on_verify']);
         return $vars;
     }
@@ -103,7 +104,7 @@ add_hook('ClientAreaPage', 1, function ($vars) {
     if ($type !== 'allpages') return $vars;
     if (Verification::isVerified($clientId)) return $vars;
 
-    redir('index.php', 'm=mailcertifyverify');
+    redir('index.php', ['m' => 'mailcertifyverify']);
     exit;
 });
 
