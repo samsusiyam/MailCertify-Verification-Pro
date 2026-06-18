@@ -76,8 +76,6 @@ class Database
 <p>If you did not create an account, please ignore this email.</p>
 <p>Regards,<br>{$company_name}</p>',
                 'attachments' => '',
-                'from_email' => '',
-                'from_name' => '',
                 'disabled' => 0,
             ]);
         }
