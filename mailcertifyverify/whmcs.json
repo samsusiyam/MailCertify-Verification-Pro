@@ -1,0 +1,7 @@
+{
+    "name": "MailCertify Verification Pro",
+    "version": "1.0.0",
+    "description": "Email verification module for WHMCS with All Page & Checkout verification, IP/Email banning, reCAPTCHA/Turnstile support, and auto-termination",
+    "author": "Host Nibo",
+    "requires": []
+}
