@@ -89,23 +89,20 @@ add_hook('DailyCronJob', 1, function ($vars) {
     Verification::resendUnverified();
 });
 
-add_hook('ClientAreaPage', 1, function ($vars) {
+add_hook('ClientAreaHeadOutput', 1, function ($vars) {
+    $clientId = (int)($_SESSION['uid'] ?? 0);
+    if (!$clientId) return '';
+
     $onVerify = $_SESSION['mc_on_verify'] ?? false;
     $isVerifyPage = strpos($_SERVER['REQUEST_URI'] ?? '', 'm=mailcertifyverify') !== false;
-    if ($onVerify || $isVerifyPage) {
-        unset($_SESSION['mc_on_verify']);
-        return $vars;
-    }
-
-    $clientId = (int)($_SESSION['uid'] ?? 0);
-    if (!$clientId) return $vars;
+    if ($onVerify || $isVerifyPage) return '';
 
     $type = Database::getSetting('verification_type');
-    if ($type !== 'allpages') return $vars;
-    if (Verification::isVerified($clientId)) return $vars;
+    if ($type !== 'allpages') return '';
 
-    header("Location: index.php?m=mailcertifyverify");
-    exit;
+    if (Verification::isVerified($clientId)) return '';
+
+    return '<script>window.location.href="index.php?m=mailcertifyverify";</script>';
 });
 
 add_hook('AdminAreaHeadOutput', 1, function () {
