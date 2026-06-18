@@ -22,7 +22,7 @@ function mailcertifyverify_config()
     return [
         'name' => 'MailCertify Verification Pro',
         'description' => 'Email verification module. Supports All Page & Checkout verification, IP/email banning, reCAPTCHA v3, CloudFlare Turnstile, and auto-termination.',
-        'author' => 'Host Nibo',
+        'author' => 'MD Samsuzzaman Siyam',
         'language' => 'english',
         'version' => $latestVersion,
         'fields' => [
