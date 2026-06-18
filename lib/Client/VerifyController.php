@@ -158,18 +158,14 @@ HTML;
             return ['allowed' => true];
         }
 
-        $allowedPages = [
-            'index.php?m=mailcertifyverify',
-            'logout.php',
-            'clientarea.php?action=details',
-            'submitticket.php',
-            'viewticket.php',
-            'supporttickets.php',
-        ];
+        if (isset($_GET['m']) && $_GET['m'] === 'mailcertifyverify') {
+            return ['allowed' => true];
+        }
 
-        $currentPage = $_SERVER['REQUEST_URI'];
-        foreach ($allowedPages as $page) {
-            if (strpos($currentPage, $page) !== false) {
+        $uri = $_SERVER['REQUEST_URI'];
+        $allowed = ['logout.php', 'submitticket.php', 'viewticket.php', 'supporttickets.php'];
+        foreach ($allowed as $page) {
+            if (strpos($uri, $page) !== false) {
                 return ['allowed' => true];
             }
         }
@@ -177,7 +173,6 @@ HTML;
         return [
             'allowed' => false,
             'redirect' => 'index.php?m=mailcertifyverify',
-            'message' => 'Please verify your email address to access this page.',
         ];
     }
 }
