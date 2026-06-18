@@ -14,15 +14,6 @@ require_once __DIR__ . '/lib/Core/Verification.php';
 require_once __DIR__ . '/lib/Core/BanManager.php';
 require_once __DIR__ . '/lib/Client/VerifyController.php';
 
-add_hook('ClientAreaPage', 1, function ($vars) {
-    $check = VerifyController::checkAccess();
-    if (!$check['allowed']) {
-        redir('m=mailcertifyverify', 'index.php');
-        exit;
-    }
-    return $vars;
-});
-
 add_hook('ClientAdd', 1, function ($vars) {
     $clientId = $vars['userid'];
     $email = $vars['email'];
@@ -38,18 +29,6 @@ add_hook('ClientAdd', 1, function ($vars) {
     }
 
     Verification::createVerification($clientId, $email);
-});
-
-add_hook('ClientAreaPageRegister', 1, function ($vars) {
-    $clientId = (int)($_SESSION['uid'] ?? 0);
-    if ($clientId && !Verification::isVerified($clientId)) {
-        $type = Database::getSetting('verification_type');
-        if ($type === 'allpages') {
-            header("Location: index.php?m=mailcertifyverify");
-            exit;
-        }
-    }
-    return $vars;
 });
 
 add_hook('ShoppingCartCheckoutOutput', 1, function ($vars) {
@@ -84,17 +63,28 @@ add_hook('ClientChangeEmail', 1, function ($vars) {
 });
 
 add_hook('ClientAreaHeadOutput', 1, function () {
-    return <<<CSS
-<style>
-.mailcertify-verify-container { max-width:600px; margin:50px auto; padding:30px; background:#fff; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,0.1); text-align:center; }
-.mailcertify-verify-container h2 { margin-bottom:20px; color:#333; }
-.mailcertify-verify-container .email-display { font-size:18px; font-weight:bold; color:#06c; margin:15px 0; }
-.mailcertify-verify-container .btn-resend { margin-top:20px; }
-.mailcertify-verify-container .alert { margin-top:20px; }
-.mailcertify-banned-container { max-width:600px; margin:50px auto; padding:30px; background:#fff; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,0.1); text-align:center; }
-.mailcertify-banned-container .banned-icon { font-size:64px; color:#c00; margin-bottom:20px; }
-</style>
-CSS;
+    $clientId = (int)($_SESSION['uid'] ?? 0);
+    if (!$clientId) return '';
+
+    $type = Database::getSetting('verification_type');
+    if ($type !== 'allpages') return '';
+
+    if (Verification::isVerified($clientId)) return '';
+
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+    $allowed = ['logout.php', 'submitticket.php', 'viewticket.php', 'supporttickets.php', 'clientarea.php?action=details'];
+    foreach ($allowed as $page) {
+        if (strpos($uri, $page) !== false) return '';
+    }
+
+    $verifyUrl = 'index.php?m=mailcertifyverify';
+    return <<<HTML
+<script>
+if (window.location.href.indexOf('m=mailcertifyverify') === -1) {
+    window.location.href = '{$verifyUrl}';
+}
+</script>
+HTML;
 });
 
 add_hook('ClientAreaPrimarySidebar', 1, function ($sidebar) {

@@ -143,51 +143,20 @@ HTML;
     public static function checkAccess()
     {
         $clientId = isset($_SESSION['uid']) ? (int) $_SESSION['uid'] : 0;
-
-        if (!$clientId) {
-            return ['allowed' => true];
-        }
+        if (!$clientId) return ['allowed' => true];
 
         $verificationType = Database::getSetting('verification_type');
-        if ($verificationType !== 'allpages') {
-            return ['allowed' => true];
-        }
+        if ($verificationType !== 'allpages') return ['allowed' => true];
 
         $client = Capsule::table('tblclients')->find($clientId);
-        if (!$client || $client->email_verified) {
-            return ['allowed' => true];
-        }
+        if (!$client || $client->email_verified) return ['allowed' => true];
 
-        $moduleParam = $_GET['m'] ?? $_REQUEST['m'] ?? '';
         $uri = $_SERVER['REQUEST_URI'] ?? '';
-        $queryString = $_SERVER['QUERY_STRING'] ?? '';
-
-        $debug = "DEBUG MailCertify checkAccess:<br>
-ClientID: {$clientId}<br>
-Verified: " . ($client->email_verified ? 'yes' : 'no') . "<br>
-GET[m]: " . htmlspecialchars($moduleParam) . "<br>
-REQUEST_URI: " . htmlspecialchars($uri) . "<br>
-QUERY_STRING: " . htmlspecialchars($queryString) . "<br>
-GET keys: " . implode(', ', array_keys($_GET)) . "<br>
-Allowed: ";
-
-        if ($moduleParam === 'mailcertifyverify' || strpos($uri, 'm=mailcertifyverify') !== false || strpos($queryString, 'm=mailcertifyverify') !== false) {
-            $debug .= "YES (on verify page)";
-            echo $debug;
-            exit;
-        }
-
         $allowed = ['logout.php', 'submitticket.php', 'viewticket.php', 'supporttickets.php', 'clientarea.php?action=details'];
         foreach ($allowed as $page) {
-            if (strpos($uri, $page) !== false) {
-                $debug .= "YES (on {$page})";
-                echo $debug;
-                exit;
-            }
+            if (strpos($uri, $page) !== false) return ['allowed' => true];
         }
 
-        $debug .= "NO - would redirect";
-        echo $debug;
-        exit;
+        return ['allowed' => false, 'show_verify' => true];
     }
 }
