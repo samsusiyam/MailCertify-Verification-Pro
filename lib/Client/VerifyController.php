@@ -161,25 +161,31 @@ HTML;
         $moduleParam = $_GET['m'] ?? $_REQUEST['m'] ?? '';
         $uri = $_SERVER['REQUEST_URI'] ?? '';
 
-        error_log("MailCertify: checkAccess - clientId={$clientId}, GET[m]={$moduleParam}, URI={$uri}");
+        $debug = "DEBUG MailCertify checkAccess:<br>
+ClientID: {$clientId}<br>
+Verified: " . ($client->email_verified ? 'yes' : 'no') . "<br>
+GET[m]: " . htmlspecialchars($moduleParam) . "<br>
+REQUEST_URI: " . htmlspecialchars($uri) . "<br>
+GET keys: " . implode(', ', array_keys($_GET)) . "<br>
+Allowed: ";
 
         if ($moduleParam === 'mailcertifyverify' || strpos($uri, 'm=mailcertifyverify') !== false) {
-            error_log("MailCertify: checkAccess - ALLOWED (on verify page)");
-            return ['allowed' => true];
+            $debug .= "YES (on verify page)";
+            echo $debug;
+            exit;
         }
 
         $allowed = ['logout.php', 'submitticket.php', 'viewticket.php', 'supporttickets.php', 'clientarea.php?action=details'];
         foreach ($allowed as $page) {
             if (strpos($uri, $page) !== false) {
-                error_log("MailCertify: checkAccess - ALLOWED (on allowed page: {$page})");
-                return ['allowed' => true];
+                $debug .= "YES (on {$page})";
+                echo $debug;
+                exit;
             }
         }
 
-        error_log("MailCertify: checkAccess - REDIRECT to verification page");
-        return [
-            'allowed' => false,
-            'redirect' => 'index.php?m=mailcertifyverify',
-        ];
+        $debug .= "NO - would redirect";
+        echo $debug;
+        exit;
     }
 }
