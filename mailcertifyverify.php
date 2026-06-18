@@ -184,3 +184,52 @@ function mailcertifyverify_output($vars)
             break;
     }
 }
+
+function mailcertifyverify_clientarea($vars)
+{
+    $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+
+    if ($action === 'verify' && isset($_GET['token'])) {
+        $result = \MailCertify\Client\VerifyController::handleVerify();
+        if ($result['success']) {
+            return [
+                'success' => true,
+                'message' => $result['message'],
+            ];
+        }
+        return [
+            'error' => $result['message'],
+        ];
+    }
+
+    if ($action === 'resend') {
+        $result = \MailCertify\Client\VerifyController::handleResend();
+        if ($result['success']) {
+            redir('m=mailcertifyverify', 'index.php');
+        }
+        return [
+            'error' => $result['message'],
+        ];
+    }
+
+    $pageData = \MailCertify\Client\VerifyController::renderVerifyPage();
+
+    if (isset($pageData['redirect'])) {
+        redir('', $pageData['redirect']);
+    }
+
+    if (isset($pageData['template']) && $pageData['template'] === 'banned') {
+        return [
+            'banned' => true,
+            'ban_type' => $pageData['vars']['type'],
+            'ban_value' => $pageData['vars']['value'],
+        ];
+    }
+
+    return [
+        'captcha_html' => $pageData['vars']['captcha_html'] ?? '',
+        'captcha_type' => $pageData['vars']['captcha_type'] ?? '',
+        'email' => $pageData['vars']['email'] ?? '',
+        'resend_url' => $pageData['vars']['resend_url'] ?? '',
+    ];
+}
