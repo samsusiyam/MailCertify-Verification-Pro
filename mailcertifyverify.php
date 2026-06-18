@@ -1,239 +1,109 @@
 <?php
 
-if (!defined("WHMCS")) {
-    die("This file cannot be accessed directly");
-}
-
-use WHMCS\Database\Capsule;
+if (!defined("WHMCS")) die("This file cannot be accessed directly");
 
 require_once __DIR__ . '/lib/Core/Database.php';
 require_once __DIR__ . '/lib/Core/Verification.php';
 require_once __DIR__ . '/lib/Core/BanManager.php';
+require_once __DIR__ . '/lib/Client/VerifyController.php';
 require_once __DIR__ . '/lib/Admin/ConfigController.php';
 require_once __DIR__ . '/lib/Admin/BanController.php';
 require_once __DIR__ . '/lib/Admin/LogController.php';
-require_once __DIR__ . '/lib/Client/VerifyController.php';
+
+use WHMCS\Database\Capsule;
 
 function mailcertifyverify_config()
 {
-    $dbVersion = \MailCertify\Core\Database::getDbVersion();
-    $latestVersion = '1.0.0';
-
     return [
         'name' => 'MailCertify Verification Pro',
-        'description' => 'Email verification module. Supports All Page & Checkout verification, IP/email banning, reCAPTCHA v3, CloudFlare Turnstile, and auto-termination.',
+        'description' => 'Email verification system for WHMCS with reCAPTCHA/Turnstile support, banning, and auto-termination.',
+        'version' => '1.0.0',
         'author' => 'MD Samsuzzaman Siyam',
-        'language' => 'english',
-        'version' => $latestVersion,
-        'fields' => [
-            'verification_type' => [
-                'FriendlyName' => 'Verification Type',
-                'Type' => 'dropdown',
-                'Options' => 'checkout,allpages',
-                'Description' => 'Checkout: verify before placing order. All Pages: restrict all account access until verified.',
-                'Default' => 'checkout',
-            ],
-            'lock_email' => [
-                'FriendlyName' => 'Lock Email',
-                'Type' => 'yesno',
-                'Description' => 'Prevent clients from changing their email address until verified.',
-                'Default' => 'on',
-            ],
-            'auto_terminate_enabled' => [
-                'FriendlyName' => 'Enable Auto Terminate',
-                'Type' => 'yesno',
-                'Description' => 'Auto-terminate/close unverified accounts after X days.',
-                'Default' => 'on',
-            ],
-            'auto_terminate_days' => [
-                'FriendlyName' => 'Auto Terminate Days',
-                'Type' => 'text',
-                'Size' => '5',
-                'Description' => 'Days after which unverified accounts are auto-terminated.',
-                'Default' => '7',
-            ],
-            'auto_delete_enabled' => [
-                'FriendlyName' => 'Enable Auto Delete',
-                'Type' => 'yesno',
-                'Description' => 'Permanently delete unverified accounts with no active orders after X days.',
-                'Default' => 'off',
-            ],
-            'auto_delete_days' => [
-                'FriendlyName' => 'Auto Delete Days',
-                'Type' => 'text',
-                'Size' => '5',
-                'Description' => 'Days after which unverified accounts are permanently deleted.',
-                'Default' => '30',
-            ],
-            'resend_enabled' => [
-                'FriendlyName' => 'Enable Resend Email',
-                'Type' => 'yesno',
-                'Description' => 'Resend verification email after X days if not verified.',
-                'Default' => 'on',
-            ],
-            'resend_days' => [
-                'FriendlyName' => 'Resend Email Days',
-                'Type' => 'text',
-                'Size' => '5',
-                'Description' => 'Days after which verification email is resent.',
-                'Default' => '3',
-            ],
-            'captcha_type' => [
-                'FriendlyName' => 'CAPTCHA Type',
-                'Type' => 'dropdown',
-                'Options' => 'none,recaptcha,turnstile',
-                'Description' => 'Select CAPTCHA type for extra security on verification page.',
-                'Default' => 'none',
-            ],
-            'recaptcha_site_key' => [
-                'FriendlyName' => 'reCAPTCHA v3 Site Key',
-                'Type' => 'text',
-                'Size' => '50',
-                'Description' => 'Google reCAPTCHA v3 site key.',
-                'Default' => '',
-            ],
-            'recaptcha_secret_key' => [
-                'FriendlyName' => 'reCAPTCHA v3 Secret Key',
-                'Type' => 'password',
-                'Size' => '50',
-                'Description' => 'Google reCAPTCHA v3 secret key.',
-                'Default' => '',
-            ],
-            'turnstile_site_key' => [
-                'FriendlyName' => 'CloudFlare Turnstile Site Key',
-                'Type' => 'text',
-                'Size' => '50',
-                'Description' => 'CloudFlare Turnstile site key.',
-                'Default' => '',
-            ],
-            'turnstile_secret_key' => [
-                'FriendlyName' => 'CloudFlare Turnstile Secret Key',
-                'Type' => 'password',
-                'Size' => '50',
-                'Description' => 'CloudFlare Turnstile secret key.',
-                'Default' => '',
-            ],
-            'ban_ip_days' => [
-                'FriendlyName' => 'Ban IP Duration (Days)',
-                'Type' => 'text',
-                'Size' => '5',
-                'Description' => 'Number of days to ban an IP address.',
-                'Default' => '30',
-            ],
-        ],
+        'fields' => [],
     ];
 }
 
 function mailcertifyverify_activate()
 {
-    try {
-        \MailCertify\Core\Database::install();
-        return [
-            'status' => 'success',
-            'description' => 'MailCertify Verification Pro module activated successfully.',
-        ];
-    } catch (\Exception $e) {
-        return [
-            'status' => 'error',
-            'description' => 'Failed to activate module: ' . $e->getMessage(),
-        ];
-    }
+    \MailCertify\Core\Database::install();
+    return [
+        'status' => 'success',
+        'description' => 'MailCertify Verification Pro activated. Configure under Addons > MailCertify Verification.',
+    ];
 }
 
 function mailcertifyverify_deactivate()
 {
     return [
         'status' => 'success',
-        'description' => 'MailCertify Verification Pro module deactivated successfully.',
+        'description' => 'MailCertify Verification Pro deactivated. Database tables preserved.',
     ];
-}
-
-function mailcertifyverify_upgrade($vars)
-{
-    $currentVersion = $vars['version'];
-    \MailCertify\Core\Database::runUpgrades($currentVersion);
-}
-
-function mailcertifyverify_sidebar($vars)
-{
-    return \MailCertify\Admin\ConfigController::renderSidebar($vars);
 }
 
 function mailcertifyverify_output($vars)
 {
-    $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : 'overview';
+    $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 
-    switch ($action) {
-        case 'settings':
-            \MailCertify\Admin\ConfigController::handleSettings();
-            break;
-        case 'bans':
-            \MailCertify\Admin\BanController::handleBans();
-            break;
-        case 'logs':
-            \MailCertify\Admin\LogController::handleLogs();
-            break;
-        case 'clients':
-            \MailCertify\Admin\ConfigController::handleClients();
-            break;
-        case 'manual_verify':
-            \MailCertify\Admin\ConfigController::handleManualVerify();
-            break;
-        default:
-            \MailCertify\Admin\ConfigController::renderOverview();
-            break;
+    if ($action === 'clients') {
+        \MailCertify\Admin\ConfigController::handleClients();
+    } elseif ($action === 'manualverify' || $action === 'manual_verify') {
+        \MailCertify\Admin\ConfigController::handleManualVerify();
+    } elseif ($action === 'bans') {
+        \MailCertify\Admin\BanController::handleBans();
+    } elseif ($action === 'logs') {
+        \MailCertify\Admin\LogController::handleLogs();
+    } elseif ($action === 'settings') {
+        \MailCertify\Admin\ConfigController::handleSettings();
+    } else {
+        \MailCertify\Admin\ConfigController::renderOverview();
     }
 }
 
 function mailcertifyverify_clientarea($vars)
 {
-    $_SESSION['mc_on_verify'] = true;
-
     $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 
     if ($action === 'verify' && isset($_GET['token'])) {
         $result = \MailCertify\Client\VerifyController::handleVerify();
-        if ($result['success']) {
-            return [
-                'success' => true,
-                'message' => $result['message'],
-            ];
-        }
-        return [
-            'error' => $result['message'],
-        ];
+        $_SESSION['mc_msg'] = $result['message'];
+        $_SESSION['mc_success'] = $result['success'];
+        redir('index.php', 'm=mailcertifyverify');
     }
 
     if ($action === 'resend') {
         $result = \MailCertify\Client\VerifyController::handleResend();
-        if ($result['success']) {
-            unset($_SESSION['mc_on_verify']);
-            redir('m=mailcertifyverify', 'index.php');
-        }
-        return [
-            'error' => $result['message'],
-        ];
+        $_SESSION['mc_msg'] = $result['message'];
+        $_SESSION['mc_success'] = $result['success'];
+        redir('index.php', 'm=mailcertifyverify');
     }
+
+    $msg = $_SESSION['mc_msg'] ?? '';
+    $success = $_SESSION['mc_success'] ?? false;
+    unset($_SESSION['mc_msg'], $_SESSION['mc_success']);
 
     $pageData = \MailCertify\Client\VerifyController::renderVerifyPage();
 
     if (isset($pageData['redirect'])) {
-        unset($_SESSION['mc_on_verify']);
-        redir('', $pageData['redirect']);
+        if ($msg && $pageData['redirect'] === 'clientarea.php') {
+            $pageData = ['vars' => []];
+        } else {
+            redir($pageData['redirect'], '');
+        }
     }
 
     if (isset($pageData['template']) && $pageData['template'] === 'banned') {
         return [
             'banned' => true,
-            'ban_type' => $pageData['vars']['type'],
-            'ban_value' => $pageData['vars']['value'],
+            'ban_type' => $pageData['vars']['type'] ?? '',
+            'ban_value' => $pageData['vars']['value'] ?? '',
         ];
     }
 
     return [
         'captcha_html' => $pageData['vars']['captcha_html'] ?? '',
-        'captcha_type' => $pageData['vars']['captcha_type'] ?? '',
         'email' => $pageData['vars']['email'] ?? '',
-        'resend_url' => $pageData['vars']['resend_url'] ?? '',
+        'message' => $msg,
+        'success' => $success,
+        'error' => !$success && $msg ? true : false,
     ];
 }

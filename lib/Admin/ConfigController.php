@@ -350,7 +350,7 @@ HTML;
                     : '<span class="label label-danger">No</span>';
                 $verifyBtn = '';
                 if (!$client->email_verified) {
-                    $verifyBtn = '<a href="?module=mailcertifyverify&action=manual_verify&client_id=' . $client->id . '" class="btn btn-xs btn-success" onclick="return confirm(\'Mark this client as verified?\')">Manual Verify</a>';
+                    $verifyBtn = '<a href="?module=mailcertifyverify&action=manualverify&client_id=' . $client->id . '" class="btn btn-xs btn-success" onclick="return confirm(\'Mark this client as verified?\')">Manual Verify</a>';
                 }
                 echo "<tr>
                     <td>{$client->id}</td>

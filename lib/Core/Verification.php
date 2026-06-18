@@ -39,7 +39,7 @@ class Verification
 
         self::logAction($clientId, $email, 'verification_created', "Verification email sent");
 
-        return $token;
+        return ['success' => true, 'token' => $token];
     }
 
     public static function sendVerificationEmail($clientId, $email, $token)

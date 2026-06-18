@@ -1,18 +1,14 @@
 <?php
 
-if (!defined("WHMCS")) {
-    die("This file cannot be accessed directly");
-}
+if (!defined("WHMCS")) die("This file cannot be accessed directly");
 
 use WHMCS\Database\Capsule;
 use MailCertify\Core\Verification;
 use MailCertify\Core\Database;
-use MailCertify\Client\VerifyController;
 
 require_once __DIR__ . '/lib/Core/Database.php';
 require_once __DIR__ . '/lib/Core/Verification.php';
 require_once __DIR__ . '/lib/Core/BanManager.php';
-require_once __DIR__ . '/lib/Client/VerifyController.php';
 
 add_hook('ClientAdd', 1, function ($vars) {
     $clientId = $vars['userid'];
@@ -29,6 +25,18 @@ add_hook('ClientAdd', 1, function ($vars) {
     }
 
     Verification::createVerification($clientId, $email);
+});
+
+add_hook('ClientLogin', 1, function ($vars) {
+    $userId = $vars['userid'] ?? 0;
+    if (!$userId) return;
+
+    $type = Database::getSetting('verification_type');
+    if ($type !== 'allpages') return;
+    if (Verification::isVerified($userId)) return;
+
+    redir('index.php', 'm=mailcertifyverify');
+    exit;
 });
 
 add_hook('ShoppingCartCheckoutOutput', 1, function ($vars) {
@@ -60,50 +68,6 @@ add_hook('ClientChangeEmail', 1, function ($vars) {
         throw new \Exception('You must verify your current email address before changing it.');
     }
     Verification::createVerification($clientId, $vars['newemail']);
-});
-
-add_hook('ClientAreaHeadOutput', 1, function () {
-    if (!empty($_SESSION['mc_on_verify'])) return '';
-
-    $clientId = (int)($_SESSION['uid'] ?? 0);
-    if (!$clientId) return '';
-
-    $type = Database::getSetting('verification_type');
-    if ($type !== 'allpages') return '';
-
-    if (Verification::isVerified($clientId)) return '';
-
-    $uri = $_SERVER['REQUEST_URI'] ?? '';
-    $allowed = ['logout.php', 'submitticket.php', 'viewticket.php', 'supporttickets.php', 'clientarea.php?action=details'];
-    foreach ($allowed as $page) {
-        if (strpos($uri, $page) !== false) return '';
-    }
-
-    $verifyUrl = 'index.php?m=mailcertifyverify';
-    return <<<HTML
-<script>
-if (window.location.href.indexOf('m=mailcertifyverify') === -1 && !sessionStorage.getItem('mc_redirected')) {
-    sessionStorage.setItem('mc_redirected', '1');
-    window.location.href = '{$verifyUrl}';
-}
-</script>
-<style>
-#mc-blocker { position:fixed;top:0;left:0;width:100%;height:100%;background:#f5f5f5;z-index:999999;display:flex;align-items:center;justify-content:center; }
-#mc-blocker .mc-box { background:#fff;padding:50px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.15);text-align:center;max-width:500px; }
-#mc-blocker h2 { margin-bottom:15px;color:#333; }
-#mc-blocker p { color:#666;margin-bottom:20px; }
-#mc-blocker .mc-btn { display:inline-block;padding:12px 30px;background:#06c;color:#fff;text-decoration:none;border-radius:4px;font-size:16px; }
-#mc-blocker .mc-btn:hover { background:#0052a3; }
-</style>
-<div id="mc-blocker">
-    <div class="mc-box">
-        <h2>Email Verification Required</h2>
-        <p>You must verify your email address before accessing this area.</p>
-        <p>A verification link has been sent to your email inbox.</p>
-        <a href="{$verifyUrl}" class="mc-btn">Verify Email Now</a>
-    </div>
-</div>
-HTML;
 });
 
 add_hook('ClientAreaPrimarySidebar', 1, function ($sidebar) {
