@@ -62,28 +62,65 @@ add_hook('ClientChangeEmail', 1, function ($vars) {
     Verification::createVerification($clientId, $vars['newemail']);
 });
 
-add_hook('ClientAreaHeadOutput', 1, function () {
+add_hook('ClientAreaPage', 1, function ($vars) {
     $clientId = (int)($_SESSION['uid'] ?? 0);
-    if (!$clientId) return '';
+    if (!$clientId) return $vars;
 
     $type = Database::getSetting('verification_type');
-    if ($type !== 'allpages') return '';
+    if ($type !== 'allpages') return $vars;
 
-    if (Verification::isVerified($clientId)) return '';
+    if (Verification::isVerified($clientId)) return $vars;
 
     $uri = $_SERVER['REQUEST_URI'] ?? '';
     $allowed = ['logout.php', 'submitticket.php', 'viewticket.php', 'supporttickets.php', 'clientarea.php?action=details'];
     foreach ($allowed as $page) {
-        if (strpos($uri, $page) !== false) return '';
+        if (strpos($uri, $page) !== false) return $vars;
     }
+
+    if (isset($_GET['m']) && $_GET['m'] === 'mailcertifyverify') return $vars;
+
+    $_SESSION['mailcertify_force_verify'] = true;
+    return $vars;
+});
+
+add_hook('ClientAreaHeadOutput', 1, function () {
+    if (empty($_SESSION['mailcertify_force_verify'])) return '';
+    unset($_SESSION['mailcertify_force_verify']);
+
+    $clientId = (int)($_SESSION['uid'] ?? 0);
+    if (!$clientId || Verification::isVerified($clientId)) return '';
 
     $verifyUrl = 'index.php?m=mailcertifyverify';
     return <<<HTML
-<script>
-if (window.location.href.indexOf('m=mailcertifyverify') === -1) {
-    window.location.href = '{$verifyUrl}';
+<style>
+html, body { height: 100%; margin: 0; overflow: hidden; }
+#mailcertify-overlay {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: #f5f5f5; z-index: 999999;
+    display: flex; align-items: center; justify-content: center;
 }
-</script>
+#mailcertify-overlay .mc-box {
+    background: #fff; padding: 50px; border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); text-align: center;
+    max-width: 500px;
+}
+#mailcertify-overlay h2 { margin-bottom: 15px; color: #333; }
+#mailcertify-overlay p { color: #666; margin-bottom: 20px; }
+#mailcertify-overlay .mc-btn {
+    display: inline-block; padding: 12px 30px;
+    background: #0066cc; color: #fff; text-decoration: none;
+    border-radius: 4px; font-size: 16px;
+}
+#mailcertify-overlay .mc-btn:hover { background: #0052a3; }
+</style>
+<div id="mailcertify-overlay">
+    <div class="mc-box">
+        <h2>Email Verification Required</h2>
+        <p>You must verify your email address before accessing this area.</p>
+        <p>A verification link has been sent to your email inbox.</p>
+        <a href="{$verifyUrl}" class="mc-btn">Verify Email Now</a>
+    </div>
+</div>
 HTML;
 });
 

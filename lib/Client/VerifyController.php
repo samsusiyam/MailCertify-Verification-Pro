@@ -157,6 +157,8 @@ HTML;
             if (strpos($uri, $page) !== false) return ['allowed' => true];
         }
 
-        return ['allowed' => false, 'show_verify' => true];
+        if (isset($_GET['m']) && $_GET['m'] === 'mailcertifyverify') return ['allowed' => true];
+
+        return ['allowed' => false];
     }
 }
