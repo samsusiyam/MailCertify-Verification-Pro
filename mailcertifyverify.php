@@ -69,14 +69,16 @@ function mailcertifyverify_clientarea($vars)
         $result = \MailCertify\Client\VerifyController::handleVerify();
         $_SESSION['mc_msg'] = $result['message'];
         $_SESSION['mc_success'] = $result['success'];
-        redir('index.php', ['m' => 'mailcertifyverify']);
+        header("Location: index.php?m=mailcertifyverify");
+        exit;
     }
 
     if ($action === 'resend') {
         $result = \MailCertify\Client\VerifyController::handleResend();
         $_SESSION['mc_msg'] = $result['message'];
         $_SESSION['mc_success'] = $result['success'];
-        redir('index.php', ['m' => 'mailcertifyverify']);
+        header("Location: index.php?m=mailcertifyverify");
+        exit;
     }
 
     $msg = $_SESSION['mc_msg'] ?? '';
@@ -89,7 +91,8 @@ function mailcertifyverify_clientarea($vars)
         if ($msg && $pageData['redirect'] === 'clientarea.php') {
             $pageData = ['vars' => []];
         } else {
-            redir($pageData['redirect']);
+            header("Location: " . $pageData['redirect']);
+            exit;
         }
     }
 

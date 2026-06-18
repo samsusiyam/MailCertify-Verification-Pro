@@ -35,7 +35,7 @@ add_hook('ClientLogin', 1, function ($vars) {
     if ($type !== 'allpages') return;
     if (Verification::isVerified($userId)) return;
 
-    redir('index.php', ['m' => 'mailcertifyverify']);
+    header("Location: index.php?m=mailcertifyverify");
     exit;
 });
 
@@ -104,7 +104,7 @@ add_hook('ClientAreaPage', 1, function ($vars) {
     if ($type !== 'allpages') return $vars;
     if (Verification::isVerified($clientId)) return $vars;
 
-    redir('index.php', ['m' => 'mailcertifyverify']);
+    header("Location: index.php?m=mailcertifyverify");
     exit;
 });
 
